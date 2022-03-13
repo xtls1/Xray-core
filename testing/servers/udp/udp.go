@@ -2,6 +2,7 @@ package udp
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/xtls/xray-core/common/net"
 )
@@ -11,6 +12,7 @@ type Server struct {
 	MsgProcessor func(msg []byte) []byte
 	accepting    bool
 	conn         *net.UDPConn
+	mu           sync.Mutex
 }
 
 func (server *Server) Start() (net.Destination, error) {
@@ -49,6 +51,9 @@ func (server *Server) handleConnection(conn *net.UDPConn) {
 }
 
 func (server *Server) Close() error {
+	server.mu.Lock()
+	defer server.mu.Unlock()
+
 	server.accepting = false
 	return server.conn.Close()
 }
